@@ -16,13 +16,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@/components": path.resolve(__dirname, "components"),
-      "@/lib": path.resolve(__dirname, "lib"),
-      "@/components/utils": path.resolve(__dirname, "components/utils"),
-    };
+  webpack(config) {
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
   },
 };
