@@ -13,7 +13,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/Sidebar"
 import { Button } from "@/components/ui/button"
 import {
   MessageSquare,
