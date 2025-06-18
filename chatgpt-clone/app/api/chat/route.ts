@@ -3,7 +3,7 @@ import { CoreMessage, streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { get_encoding, encoding_for_model } from "tiktoken";
+import { get_encoding } from "tiktoken";
 import { trimMessagesToFitTokenLimit } from "@/components/utils/token-limiter";
 /**
  * API route for chat operations: list, get, create, send, edit, and delete chats/messages.
