@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarProvider } from "@/components/ui/Sidebar"
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
 
 export default function DashboardLayout({
