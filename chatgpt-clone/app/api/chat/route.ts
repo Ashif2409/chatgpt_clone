@@ -3,8 +3,9 @@ import { CoreMessage, streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { get_encoding } from "tiktoken";
-import { trimMessagesToFitTokenLimit } from "@/components/utils/token-limiter";
+import { getTokenizer } from "@/lib/tokenizer"; 
+import { trimMessagesToFitTokenLimit } from "@/app/utils/token-limiter";
+
 /**
  * API route for chat operations: list, get, create, send, edit, and delete chats/messages.
  * Supports file attachments and streaming AI responses.
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // 1. Tokenizer setup
     // For gpt-4o and gpt-4-turbo use tiktoken's cl100k_base encoding
-    const encoder = get_encoding("cl100k_base");
+    const encoder = await getTokenizer();
 
     if (action === "create") {
       const now = new Date();
