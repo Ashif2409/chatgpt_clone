@@ -3,7 +3,8 @@ import { CoreMessage, streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-
+import tiktoken from "tiktoken";
+import { trimMessagesToFitTokenLimit } from "@/components/utils/token-limiter";
 /**
  * API route for chat operations: list, get, create, send, edit, and delete chats/messages.
  * Supports file attachments and streaming AI responses.
@@ -56,15 +57,25 @@ export async function GET(request: NextRequest) {
 }
 
 // ========== POST: Create chat or send message ==========
+
+
+
 export async function POST(request: NextRequest) {
   const client = await clientPromise;
   const db = client.db("chatdb");
+
   try {
     const body = await request.json();
     const { messages: chatMessages, chatId, action, files } = body;
-    
+
+    // Choose your model here.
+    const model = "gpt-4o";
+
+    // 1. Tokenizer setup
+    // For gpt-4o and gpt-4-turbo use tiktoken's cl100k_base encoding
+    const encoder = tiktoken.get_encoding("cl100k_base");
+
     if (action === "create") {
-      // Create a new chat
       const now = new Date();
       const newChat = {
         title: "Untitled Chat",
@@ -101,7 +112,9 @@ export async function POST(request: NextRequest) {
       });
 
       // Update chat title if this is the first message
-      const messageCount = await db.collection("messages").countDocuments({ chatId: objectId });
+      const messageCount = await db
+        .collection("messages")
+        .countDocuments({ chatId: objectId });
       if (messageCount === 1) {
         await db.collection("chats").updateOne(
           { _id: objectId },
@@ -116,7 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare messages for AI, including file attachments
-    const completeMessages = [...chatMessages];
+    let completeMessages = [...chatMessages];
     if (files && Array.isArray(files)) {
       for (const fileUrl of files) {
         completeMessages.push({
@@ -139,9 +152,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ===== 2. TOKEN LIMIT MANAGEMENT PER MODEL =====
+    completeMessages = trimMessagesToFitTokenLimit(
+      completeMessages,
+      encoder,
+      model,
+      1024 
+    );
+    // ===============================================
+
     // Stream AI response and save to DB
     const result = await streamText({
-      model: openai("gpt-4o"),
+      model: openai(model),
       messages: completeMessages,
       onFinish: async ({ text }) => {
         await db.collection("messages").insertOne({
